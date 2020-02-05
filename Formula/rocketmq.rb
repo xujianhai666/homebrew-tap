@@ -28,6 +28,8 @@ class Rocketmq < Formula
     (libexec/"conf/broker.conf").write broker_conf
     (etc/"rocketmq").install Dir[libexec/"conf/*"]
     (libexec/"conf").rmtree
+    (libexec/"bin/mqlaunch").write launch
+    chmod 0555, (libexec/"bin/mqlaunch")
 
     Dir.foreach(libexec/"bin") do |f|
       next if f == "." || f == ".." || !File.extname(f).empty?
@@ -58,6 +60,44 @@ class Rocketmq < Formula
   EOS
   end
 
+  def launch; <<~EOS
+    #!/bin/sh
+    if [ -z "$ROCKETMQ_HOME" ] ; then
+      ## resolve links - $0 may be a link to maven's home
+      PRG="$0"
+
+      # need this for relative symlinks
+      while [ -h "$PRG" ] ; do
+        ls=`ls -ld "$PRG"`
+        link=`expr "$ls" : '.*-> \(.*\)$'`
+        if expr "$link" : '/.*' > /dev/null; then
+          PRG="$link"
+        else
+          PRG="`dirname "$PRG"`/$link"
+        fi
+      done
+
+      saveddir=`pwd`
+
+      ROCKETMQ_HOME=`dirname "$PRG"`/..
+
+      # make it fully qualified
+      ROCKETMQ_HOME=`cd "$ROCKETMQ_HOME" && pwd`
+
+      cd "$saveddir"
+    fi
+
+    export ROCKETMQ_HOME
+
+    pid=jps | grep NamesrvStartup | awk '{print $1}'
+    if [ ! -e "$pid" ]; then
+        nohup sh ${ROCKETMQ_HOME}/bin/runserver.sh org.apache.rocketmq.namesrv.NamesrvStartup &
+    fi
+
+    sh ${ROCKETMQ_HOME}/bin/runbroker.sh org.apache.rocketmq.broker.BrokerStartup @
+  EOS
+  end
+
 
   def caveats
     s = <<~EOS
@@ -69,7 +109,9 @@ class Rocketmq < Formula
     s
   end
 
-  plist_options :manual => "mqbroker -n localhost:9876 -c  #{HOMEBREW_PREFIX}/etc/rocketmq/broker.conf autoCreateTopicEnable=true"
+  plist_options :manual => "setup rocketmq server with two steps: 
+        1. mqnamesrv 
+        2. mqbroker -n localhost:9876 -c  #{HOMEBREW_PREFIX}/etc/rocketmq/broker.conf autoCreateTopicEnable=true"
 
   def plist; <<~EOS
     <?xml version="1.0" encoding="UTF-8"?>
@@ -78,15 +120,16 @@ class Rocketmq < Formula
     <dict>
       <key>Label</key>
       <string>#{plist_name}</string>
+      
       <key>ProgramArguments</key>
       <array>
-        <string>#{opt_bin}/mqbroker</string>
+        <string>#{bin}/mqlaunch</string>
         <string>-n</string>
         <string>localhost:9876</string>
         <string>-c</string>
         <string>#{etc}/rocketmq/broker.conf</string>
-        <string>autoCreateTopicEnable=true</string>
       </array>
+
       <key>RunAtLoad</key>
       <true/>
       <key>KeepAlive</key>
