@@ -14,7 +14,7 @@ Then you can install individual products via:
 
 The following products are supported:
 
-* RocketMQ `brew install elastic/tap/rocketmq`
+* RocketMQ `brew install xujianhai666/tap/rocketmq`
 
 ## Default Paths for the RocketMQ Formula
 
