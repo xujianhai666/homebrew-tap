@@ -89,6 +89,19 @@ class Rocketmq < Formula
 
     export ROCKETMQ_HOME
 
+    if [ ! -d "${JAVA_HOME}" ]; then 
+        JAVA_HOME_CANDIDATES=($(ps aux | grep java | grep -v 'grep java' | awk '{print $11}' | sed -n 's/\\/bin\\/java$//p')) 
+        for JAVA_HOME_TEMP in ${JAVA_HOME_CANDIDATES[@]}; do 
+            echo ${JAVA_HOME_TEMP}
+            if [ -f "${JAVA_HOME_TEMP}/lib/tools.jar" ]; then 
+                JAVA_HOME=${JAVA_HOME_TEMP} 
+                break 
+            fi 
+        done 
+    fi 
+
+    export JAVA_HOME=${JAVA_HOME}
+
     pid=jps | grep NamesrvStartup | awk '{print $1}'
     if [ ! -e "$pid" ]; then
         nohup sh ${ROCKETMQ_HOME}/bin/runserver.sh org.apache.rocketmq.namesrv.NamesrvStartup &
