@@ -55,5 +55,19 @@ and then setup broker:
 mqbroker -n localhost:9876 -c  /usr/local/etc/rocketmq/broker.conf
 ```
 
+then, we could use mqadmin to send messages or view cluster&topics info.create topic as below. more commands see mqadmin help:
+
+```
+mqadmin updateTopic -t  topicTest  -n 127.0.0.1:9876  -c DefaultCluster  -r 2 -w 2
+```
+
+finally, we should shutdown rocketmq server: nameserver and broker.
+
+```
+mqshutdown namesrv
+mqshutdown broker
+```
+
+
 ## Documentation
 `brew help`, `man brew` or check [Homebrew's documentation](https://github.com/Homebrew/brew/blob/master/docs/README.md).
