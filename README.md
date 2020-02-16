@@ -10,7 +10,7 @@ Install the tap via:
 
 Then you can install individual products via:
 
-    brew install xujianhai666/tap/rocketmq
+    brew install xujianhai666/rocketmq
 
 The following products are supported:
 
