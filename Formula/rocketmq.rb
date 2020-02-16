@@ -87,6 +87,11 @@ class Rocketmq < Formula
       cd "$saveddir"
     fi
 
+    # macos dmg install format
+    if [ ! -d "${JAVA_HOME}" ]; then 
+      JAVA_HOME=`/usr/libexec/java_home -V`
+    fi
+
     export ROCKETMQ_HOME
 
     if [ ! -d "${JAVA_HOME}" ]; then 
